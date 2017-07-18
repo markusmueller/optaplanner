@@ -55,30 +55,30 @@ end
 // ############################################################################
 
 // Faster, but does not combine well with other constraints in the same level
-rule "fairAssignmentCountPerTeam"
-    when
-        accumulate(
-            TeamAssignment(team != null, $t : team);
-            $total : loadBalanceByCount($t)
-        )
-    then
-        scoreHolder.addMediumConstraintMatch(kcontext, - (int) $total.getZeroDeviationSquaredSumRootMillis());
-end
-
-// Slower, but combines well with other constraints (regardless of dataset scale) and is zero if perfectly fair
 //rule "fairAssignmentCountPerTeam"
 //    when
 //        accumulate(
-//            $t : Team()
-//            and accumulate(
-//                TeamAssignment(team == $t);
-//                $assignmentCount : count()
-//            );
-//            $result : loadBalance($assignmentCount)
+//            TeamAssignment(team != null, $t : team);
+//            $total : loadBalanceByCount($t)
 //        )
 //    then
-//        scoreHolder.addMediumConstraintMatch(kcontext, - (int) $result.getMeanDeviationSquaredSumRootMillis());
+//        scoreHolder.addMediumConstraintMatch(kcontext, - (int) $total.getZeroDeviationSquaredSumRootMillis());
 //end
+
+// Slower, but combines well with other constraints (regardless of dataset scale) and is zero if perfectly fair
+rule "fairAssignmentCountPerTeam"
+    when
+        accumulate(
+            $t : Team()
+            and accumulate(
+                TeamAssignment(team == $t);
+                $assignmentCount : count()
+            );
+            $result : loadBalance($assignmentCount)
+        )
+    then
+        scoreHolder.addMediumConstraintMatch(kcontext, - (int) $result.getMeanDeviationSquaredSumRootMillis());
+end
 
 // ############################################################################
 // Soft constraints
